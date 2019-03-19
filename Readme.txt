@@ -3,7 +3,7 @@ This is a demo file for end-to-end training of Deep Canonical Correlation Analys
 The code is written by Weiran Wang, one author of the paper "On deep multi-view representation learning (wang2015deep)".
 The code is tested on the synthetic noisy MNIST dataset (described in 'wang2015deep').
 
-Sometimes, it might report 'Nan', and please consider to use large minibatch.
+Sometimes, the eigen-decomposition in tensorflow is not numerically stable, and it might report 'Nan' -- Please consider to use large minibatch.
 
 If you use the code, please consider to cite the following two papers.
 
