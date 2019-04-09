@@ -1,13 +1,26 @@
-This is a demo file for end-to-end training of Deep Canonical Correlation Analysis (DCCA).
+# ===============================================================================
+# (C) 2019 by Weiran Wang (weiranwang@ttic.edu), Qingming Tang (qmtang@ttic.edu),
+# and Karen Livescu (klivescu@ttic.edu).
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+# WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+# MERCHANTABLITY OR NON-INFRINGEMENT.
+# ===============================================================================
 
-The code is written by Weiran Wang, one author of the paper "On deep multi-view representation learning (wang2015deep)".
-The code is tested on the synthetic noisy MNIST dataset (described in 'wang2015deep').
+This package contains python+tensorflow code for the Deep Canonical
+Correlation Analysis algorithm. (An earlier MATLAB implementation can be
+found at https://ttic.uchicago.edu/~wwang5/dccae.html)
 
-Sometimes, the eigen-decomposition in tensorflow is not numerically stable, and it might report 'Nan' -- Please consider to use large minibatch.
+If you use this code, please cite the following papers.
 
-If you use the code, please consider to cite the following two papers.
-
-@inproceedings{wang2015deep,
+@inproceedings{Wang15,
   title={On deep multi-view representation learning},
   author={Wang, Weiran and Arora, Raman and Livescu, Karen and Bilmes, Jeff},
   booktitle={International Conference on Machine Learning},
@@ -15,7 +28,7 @@ If you use the code, please consider to cite the following two papers.
   year={2015}
 }
 
-@inproceedings{andrew2013deep,
+@inproceedings{Andrew13,
   title={Deep canonical correlation analysis},
   author={Andrew, Galen and Arora, Raman and Bilmes, Jeff and Livescu, Karen},
   booktitle={International conference on machine learning},

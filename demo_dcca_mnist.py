@@ -1,3 +1,19 @@
+# ===============================================================================
+# (C) 2019 by Weiran Wang (weiranwang@ttic.edu), Qingming Tang (qmtang@ttic.edu),
+# and Karen Livescu (klivescu@ttic.edu).
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+# WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+# MERCHANTABLITY OR NON-INFRINGEMENT.
+# ===============================================================================
+
 import numpy as np
 import os
 import tensorflow as tf
