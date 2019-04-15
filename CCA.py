@@ -1,6 +1,5 @@
-# ===============================================================================
-# (C) 2019 by Weiran Wang (weiranwang@ttic.edu), Qingming Tang (qmtang@ttic.edu),
-# and Karen Livescu (klivescu@ttic.edu).
+# =================================================================================
+# (C) 2019 by Weiran Wang (weiranwang@ttic.edu) and Qingming Tang (qmtang@ttic.edu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +11,7 @@
 # KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
 # WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
 # MERCHANTABLITY OR NON-INFRINGEMENT.
-# ===============================================================================
+# =================================================================================
 
 import numpy as np
 import tensorflow as tf
