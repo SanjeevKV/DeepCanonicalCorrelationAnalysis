@@ -16,7 +16,7 @@
 import numpy as np
 import tensorflow as tf
 
-eps_eig = 1e-12
+eps_eig = 1e-6
 
 def linCCA(H1, H2, dim, rcov1, rcov2):
 
@@ -60,7 +60,7 @@ def linCCA(H1, H2, dim, rcov1, rcov2):
     return A, B, m1, m2, E
 
 
-def CCA_loss(H1, H2, N, d1, d2, dim, rcov1, rcov2):
+def CanonCorr(H1, H2, N, d1, d2, dim, rcov1, rcov2):
 
     # Remove mean.
     m1 = tf.reduce_mean(H1, axis=0, keep_dims=True)
@@ -85,14 +85,17 @@ def CCA_loss(H1, H2, N, d1, d2, dim, rcov1, rcov2):
     E2 = tf.gather(E2, idx2)
     V2 = tf.gather(V2, idx2, axis=1)
 
-    K11 = tf.matmul( tf.matmul(V1, tf.diag(tf.reciprocal(tf.sqrt(E1)))), tf.transpose(V1))
-    K22 = tf.matmul( tf.matmul(V2, tf.diag(tf.reciprocal(tf.sqrt(E2)))), tf.transpose(V2))
-    T = tf.matmul( tf.matmul(K11, S12), K22)
+    K11 = tf.matmul(tf.matmul(V1, tf.diag(tf.reciprocal(tf.sqrt(E1)))), tf.transpose(V1))
+    K22 = tf.matmul(tf.matmul(V2, tf.diag(tf.reciprocal(tf.sqrt(E2)))), tf.transpose(V2))
+    T = tf.matmul(tf.matmul(K11, S12), K22)
 
     # Eigenvalues are sorted in increasing order.
-    E2, U = tf.self_adjoint_eig(tf.matmul(T, tf.transpose(T)))
+    E3, U = tf.self_adjoint_eig(tf.matmul(T, tf.transpose(T)))
+    idx3 = tf.where(E3 > eps_eig)[:, 0]
+    # This is the thresholded rank.
+    dim_svd = tf.cond(tf.size(idx3) < dim, lambda: tf.size(idx3), lambda: dim)
 
-    return tf.reduce_sum(tf.sqrt(E2[-dim:]))
+    return tf.reduce_sum(tf.sqrt(E3[-dim_svd:])), E3, dim_svd
 
 
 if __name__ == "__main__":
@@ -114,14 +117,14 @@ if __name__ == "__main__":
         V2 = tf.Variable(initial_value=H2, name="H2_variable")
         sess.run(tf.global_variables_initializer())
         print(tf.trainable_variables())
-        canoncorr=CCA_loss(V1,V2,H1.shape[0],H1.shape[1],H2.shape[1],dim,1e-4,1e-2)
+        canoncorr, _, _ = CanonCorr(V1,V2,H1.shape[0],H1.shape[1],H2.shape[1],dim,1e-4,1e-2)
         print(sess.run(canoncorr))
 
         optimizer = tf.train.GradientDescentOptimizer(1e-5)
         grads_and_vars = sess.run( optimizer.compute_gradients(canoncorr, tf.trainable_variables()) )
         vars = tf.trainable_variables()
 
-        count=0
+        count = 0
         for g, v in grads_and_vars:
             if g is not None:
                 print("****************this is variable %s *************" % vars[count])
@@ -129,7 +132,7 @@ if __name__ == "__main__":
                 print "****************this is gradient*************"
                 print "gradient's shape:", g.shape
                 print g
-            count+=1
+            count += 1
 
 
 """

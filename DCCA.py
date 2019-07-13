@@ -16,7 +16,7 @@
 import numpy as np
 import math
 import tensorflow as tf
-from CCA import linCCA, CCA_loss
+from CCA import linCCA, CanonCorr
 
 ########################## CONSTRUCT AN DENSE DNN ##############################
 def dnn(inputs, D_in, layer_widths, layer_activations, keepprob, name, variable_reuse, initializer):
@@ -64,7 +64,7 @@ class DCCA(object):
         self.tunecost=tf.Variable(tf.zeros([1000]), trainable=False)
         
         # Initialize network weights and biases.
-        initializer=tf.random_uniform_initializer(-0.05, 0.05)
+        initializer = tf.glorot_uniform_initializer()
         
         # Use the recognition network to obtain the Gaussian distribution (mean and log-variance) of latent codes.
         print("Building view 1 projection network F ...")
@@ -74,15 +74,15 @@ class DCCA(object):
         self.FX2=dnn(self.x2, self.n_input2, architecture["G_hidden_widths"], architecture["G_hidden_activations"], self.keepprob, "G", None, initializer)
 
         print("Covariance regularizations: [%f, %f]" % (rcov1, rcov2))
-        self.canoncorr=CCA_loss(self.FX1, self.FX2, self.batchsize, n_z, n_z, n_z, self.rcov1, self.rcov2)
+        self.canoncorr, self.corrvec, self.dim_svd = CanonCorr(self.FX1, self.FX2, self.batchsize, n_z, n_z, n_z, self.rcov1, self.rcov2)
         
         # Weight decay.
         self.weightdecay=tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()])
 
         # Define cost and use the ADAM optimizer.
         self.cost= - self.canoncorr + l2_penalty * self.weightdecay
-        # self.optimizer=tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
-        self.optimizer=tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.95).minimize(self.cost)
+        self.optimizer=tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
+        # self.optimizer=tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.95).minimize(self.cost)
         
         
         # Initializing the tensor flow variables and launch the session.
@@ -104,7 +104,14 @@ class DCCA(object):
     def partial_fit(self, X1, X2, keepprob):
         
         # Train model based on mini-batch of input data. Return cost of mini-batch.
-        opt, cost=self.sess.run( [self.optimizer, self.cost], feed_dict={self.x1: X1, self.x2: X2, self.batchsize: X1.shape[0], self.keepprob: keepprob})
+        opt, cost, FX1, FX2, corrvec, dim_svd = self.sess.run([self.optimizer, self.cost, self.FX1, self.FX2, self.corrvec, self.dim_svd], feed_dict={self.x1: X1, self.x2: X2, self.batchsize: X1.shape[0], self.keepprob: keepprob})
+        # WEIRAN: for debugging.
+        # print(FX1[:5,:5])
+        # print(FX2[:5,:5])
+        # print("Vector of canonical correlations:")
+	    # print(corrvec)
+	    # print("Thresholded rank:")
+	    # print(dim_svd)
         return cost
     
     
