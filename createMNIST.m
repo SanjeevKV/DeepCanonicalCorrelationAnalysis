@@ -10,14 +10,21 @@ X1=[];  X2=[];  trainLabel=[];
 XV1=[]; XV2=[]; tuneLabel=[];
 
 NUMVALID=1000;
-load demoseed.mat randseed;
-rng(randseed);
+% load demoseed.mat randseed;
+rng('default');
 
 for i=1:10
   TMP = TRAIN{i};
+  'Train'
+  i
+  size(TMP,1)
   rp1 = randperm(size(TMP,1));
   rp2 = randperm(size(TMP,1));
   for j=1:size(TMP,1)
+    'Train'
+    i
+    size(TMP,1)
+    j
     tmp1 = double(TMP(rp1(j),:))/255; tmp1 = reshape(tmp1,28,28)';
     % Random rotation.
     angle = sign(randn)*rand*45;
@@ -42,9 +49,15 @@ end
 XTe1=[];XTe2=[];testLabel=[];
 for i=1:10
   TMP = TEST{i};
+  'Test'
+  i
   rp1 = randperm(size(TMP,1));
   rp2 = randperm(size(TMP,1));
   for j=1:size(TMP,1)
+    'Test'
+    i
+    size(TMP,1)
+    j
     tmp1 = double(TMP(rp1(j),:))/255; tmp1 = reshape(tmp1,28,28)';
     % Random rotation.
     angle = sign(randn)*rand*45;
@@ -60,4 +73,4 @@ for i=1:10
   end
 end
 
-save MNIST.mat X1 X2 trainLabel XV1 XV2 tuneLabel XTe1 XTe2 testLabel NUMVALID randseed
+save MNIST.mat X1 X2 trainLabel XV1 XV2 tuneLabel XTe1 XTe2 testLabel NUMVALID 

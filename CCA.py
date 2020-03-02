@@ -128,10 +128,10 @@ if __name__ == "__main__":
         for g, v in grads_and_vars:
             if g is not None:
                 print("****************this is variable %s *************" % vars[count])
-                print v
-                print "****************this is gradient*************"
-                print "gradient's shape:", g.shape
-                print g
+                print (v)
+                print ("****************this is gradient*************")
+                print ("gradient's shape:", g.shape)
+                print (g)
             count += 1
 
 

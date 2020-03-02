@@ -18,7 +18,8 @@ import os
 import tensorflow as tf
 import DCCA as dcca
 from CCA import linCCA
-from myreadinput import read_mnist
+#from myreadinput import read_mnist
+import scipy.io as io
 
 
 import argparse
@@ -33,6 +34,25 @@ args=parser.parse_args()
 # Handle multiple gpu issues.
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpuid
 
+def read_mnist():
+    data = io.loadmat('MNIST.mat')
+    class Dataset:
+        def __init__(self, images1, images2, labels):
+            self.images1 = images1
+            self.images2 = images2
+            self.labels = labels
+            self.num_examples = self.labels.shape[0]
+            self.current_index = 0
+
+        def next_batch(self, batch_size):
+            self.current_index += batch_size
+            return self.images1[self.current_index - batch_size : self.current_index, :], self.images2[self.current_index - batch_size : self.current_index, :], self.labels[self.current_index - batch_size : self.current_index, :]
+
+    trData = Dataset(data['X1'],data['X2'], data['trainLabel'])
+    tuData = Dataset(data['XV1'],data['XV2'], data['tuneLabel'])
+    teData = Dataset(data['XTe1'],data['XTe2'], data['testLabel'])
+
+    return trData, tuData, teData
 
 if __name__ == "__main__":
 
