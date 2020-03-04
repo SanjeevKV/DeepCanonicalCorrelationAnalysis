@@ -1,7 +1,7 @@
 import os
 
-#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import tensorflow as tf
 #tf.compat.v1.enable_eager_execution()
 
@@ -169,6 +169,7 @@ def CanonCorr(H1, H2, N, d1, d2, dim, rcov1 = 0.0000, rcov2 = 0.000):
     d1, d2, dim = int(d1), int(d2), int(dim)
     #print(d1,d2,dim)
     #print(type(H1), type(N), type(rcov1), type(tf.eye(d1)))
+    print(H1.shape, H2.shape)
     S11 = tf.matmul(tf.transpose(H1), H1) / (N-1) + rcov1 * tf.eye(d1)
     S22 = tf.matmul(tf.transpose(H2), H2) / (N-1) + rcov2 * tf.eye(d2)
     S12 = tf.matmul(tf.transpose(H1), H2) / (N-1)
@@ -210,7 +211,11 @@ Keras custom Lambda layer function for combining output of two branches of a gra
 """
 def CombineSpeechMotion(speech_motion):
     speech, motion = speech_motion[0], speech_motion[1]
+    print(type(speech), type(motion))
+    speech = tf.reshape(speech, [tf.shape(speech)[0] * tf.shape(speech)[1], speech.shape[-1] ])
+    motion = tf.reshape(motion, [tf.shape(motion)[0] * tf.shape(motion)[1], motion.shape[-1] ])
     #print(speech.shape, motion.shape)
+    BatchSize = tf.cast(tf.shape(speech)[0], dtype = tf.float32)
     corr,_,_ = CanonCorr(speech, motion, BatchSize, speech.shape[-1], motion.shape[-1], speech.shape[-1], 0.0001, 0.0001)
     #print(corr.shape, type(corr))
     return corr 
@@ -237,14 +242,54 @@ def CommonNetwork(data_in):
     data_out = BatchNormalization()(data_out)
     return data_out            
 
+def SpeechNetwork(speech_input):
+    #Network for processing speech data
+    speech_in = BatchNormalization()(speech_input)
+    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_1")(speech_in)
+    speech = BatchNormalization()(speech)
+    speech = MaxPooling1D(pool_size = 2)(speech)
+    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_2")(speech)
+    speech = BatchNormalization()(speech)
+    speech = MaxPooling1D(pool_size = 2)(speech)
+    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_3")(speech)
+    speech = BatchNormalization()(speech)
+    speech = MaxPooling1D(pool_size = 2)(speech)
+    #speech = Reshape((-1,speech.shape[-1]))(speech)
+    #print("Before LSTM", speech.shape)
+    #speech = Bidirectional(LSTM(units = 24, return_sequences = False, name = "speech_lstm"))(speech)
+    #speech = BatchNormalization()(speech)
+    #speech = GlobalAveragePooling1D(name = "speech_global_averager")(speech)
+    #speech = BatchNormalization()(speech)
+    return speech
+
+def MotionNetwork(motion_input):
+    #Network for processing head motion data
+    motion_in = BatchNormalization()(motion_input)
+    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_1")(motion_in)
+    motion = BatchNormalization()(motion)
+    motion = MaxPooling1D(pool_size = 2)(motion)
+    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_2")(motion)
+    motion = BatchNormalization()(motion)
+    motion = MaxPooling1D(pool_size = 2)(motion)
+    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_3")(motion)
+    motion = BatchNormalization()(motion)
+    motion = MaxPooling1D(pool_size = 2)(motion)
+    #motion = Reshape((-1, motion.shape[-1]))(motion)
+    #motion = Bidirectional(LSTM(units = 24, return_sequences = False, name = "motion_lstm"))(motion)
+    #motion = BatchNormalization()(motion)
+    #motion = GlobalAveragePooling1D(name = "motion_global_averager")(motion)
+    #motion = BatchNormalization()(motion)
+    return motion
+
 def functional_CNN_pool_lstm_glob( input_shape_speech, input_shape_motion, num_classes ):
     print("Speech: ", input_shape_speech)
     print("Motion: ", input_shape_motion)
     speech_input = Input(shape = input_shape_speech, name = "speech_input")
     motion_input = Input(shape = input_shape_motion, name = "motion_input")
 
-    speech = CommonNetwork(speech_input)
-    motion = CommonNetwork(motion_input)
+    speech = SpeechNetwork(speech_input)
+    motion = MotionNetwork(motion_input)
+    print(speech.shape, motion.shape)
     speech_motion = Lambda(CombineSpeechMotion)([speech, motion])
     model = Model(inputs = [speech_input, motion_input], outputs = [speech_motion])
     model.compile(optimizer='adam',loss=[NegativeCanonCorr],metrics=[NegativeCanonCorr])
@@ -342,7 +387,7 @@ cann_cor, _, _ = CanonCorr(ten_1, ten_2, 32, 32, 32, dim, rcov1, rcov2)
                     
 DURATION = 600
 NUM_CHANNELS_SPEECH = 13
-NUM_CHANNELS_MOTION = 13#3
+NUM_CHANNELS_MOTION = 3
 
 input_shape_speech = (DURATION, NUM_CHANNELS_SPEECH)
 input_shape_motion = (DURATION, NUM_CHANNELS_MOTION)
@@ -354,13 +399,13 @@ model.summary()
 
 MOTION_COLS = ["X","Y","Z"]
 
-velocity_train_files_location = "/home2/data/Sanjeev/Velocity/Train/VelocityFiles.txt"
-velocity_valid_files_location = "/home2/data/Sanjeev/Velocity/Valid/VelocityFiles.txt"
-velocity_test_files_location = "/home2/data/Sanjeev/Velocity/Test/VelocityFiles.txt"
+velocity_train_files_location = "../Velocity/Train/VelocityFiles.txt"
+velocity_valid_files_location = "../Velocity/Valid/VelocityFiles.txt"
+velocity_test_files_location = "../Velocity/Test/VelocityFiles.txt"
 
-mfcc_train_files_location = "/home2/data/Sanjeev/Velocity/Train/MFCCFiles.txt"
-mfcc_valid_files_location = "/home2/data/Sanjeev/Velocity/Valid/MFCCFiles.txt"
-mfcc_test_files_location = "/home2/data/Sanjeev/Velocity/Test/MFCCFiles.txt"
+mfcc_train_files_location = "../Velocity/Train/MFCCFiles.txt"
+mfcc_valid_files_location = "../Velocity/Valid/MFCCFiles.txt"
+mfcc_test_files_location = "../Velocity/Test/MFCCFiles.txt"
 
 #ids_dictionary_train = IdAssigner(LinesToList(mfcc_train_files_location), 0, 1, duration = DURATION, shift = 60, l_chuck = 120, u_chuck = 120)
 #labels_dictionary_train = IdAssignerMotion(LinesToList(velocity_train_files_location), 0, 1, MOTION_COLS, duration = DURATION, shift = 60, l_chuck = 120, u_chuck = 120)
@@ -388,8 +433,8 @@ with open(velocity_valid_files_location + ".bin", 'rb') as handle:
 #train_generator = DataGenerator(ids_dictionary_train, labels_dictionary_train, dim = (DURATION,), n_classes = output_size)
 #valid_generator = DataGenerator(ids_dictionary_valid, labels_dictionary_valid, dim = (DURATION,), n_classes = output_size)
 
-train_generator = DataGenerator(ids_dictionary_train, ids_dictionary_train, dim = (DURATION,), n_channels_motion = NUM_CHANNELS_MOTION, n_classes = output_size)
-valid_generator = DataGenerator(ids_dictionary_valid, ids_dictionary_valid, dim = (DURATION,), n_channels_motion = NUM_CHANNELS_MOTION, n_classes = output_size)
+train_generator = DataGenerator(ids_dictionary_train, labels_dictionary_train, dim = (DURATION,), n_channels_motion = NUM_CHANNELS_MOTION, n_classes = output_size)
+valid_generator = DataGenerator(ids_dictionary_valid, labels_dictionary_valid, dim = (DURATION,), n_channels_motion = NUM_CHANNELS_MOTION, n_classes = output_size)
 
 #print( len(labels_dictionary_train), len(labels_dictionary_valid) )
 #for key, value in train_generator.VelocityDistribution().items():
