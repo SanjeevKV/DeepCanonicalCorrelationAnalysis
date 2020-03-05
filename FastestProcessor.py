@@ -245,15 +245,15 @@ def CommonNetwork(data_in):
 def SpeechNetwork(speech_input):
     #Network for processing speech data
     speech_in = BatchNormalization()(speech_input)
-    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_1")(speech_in)
+    speech = Conv1D(24, 17, activation = 'relu', name = "speech_convolution_1")(speech_in)
     speech = BatchNormalization()(speech)
-    speech = MaxPooling1D(pool_size = 2)(speech)
-    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_2")(speech)
+    speech = MaxPooling1D(pool_size = 3)(speech)
+    speech = Conv1D(24, 17, activation = 'relu', name = "speech_convolution_2")(speech)
     speech = BatchNormalization()(speech)
-    speech = MaxPooling1D(pool_size = 2)(speech)
-    speech = Conv1D(24, 10, activation = 'relu', name = "speech_convolution_3")(speech)
+    speech = MaxPooling1D(pool_size = 3)(speech)
+    speech = Conv1D(24, 17, activation = 'relu', name = "speech_convolution_3")(speech)
     speech = BatchNormalization()(speech)
-    speech = MaxPooling1D(pool_size = 2)(speech)
+    speech = MaxPooling1D(pool_size = 3)(speech)
     #speech = Reshape((-1,speech.shape[-1]))(speech)
     #print("Before LSTM", speech.shape)
     #speech = Bidirectional(LSTM(units = 24, return_sequences = False, name = "speech_lstm"))(speech)
@@ -263,17 +263,20 @@ def SpeechNetwork(speech_input):
     return speech
 
 def MotionNetwork(motion_input):
+    #rf = (241 - k - p * (k-1) - p**2 * ( k-1)) / p**3 : 240 corresponds to a receptive field of 2 seconds
+    #p and k could be modified such that rf=1 for it to have a receptive field of 2 seconds.
+    #(p=2,k=34) and (p=3, k=17) are some of the apirs possible
     #Network for processing head motion data
     motion_in = BatchNormalization()(motion_input)
-    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_1")(motion_in)
+    motion = Conv1D(24, 17, activation = 'relu', name = "motion_convolution_1")(motion_in)
     motion = BatchNormalization()(motion)
-    motion = MaxPooling1D(pool_size = 2)(motion)
-    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_2")(motion)
+    motion = MaxPooling1D(pool_size = 3)(motion)
+    motion = Conv1D(24, 17, activation = 'relu', name = "motion_convolution_2")(motion)
     motion = BatchNormalization()(motion)
-    motion = MaxPooling1D(pool_size = 2)(motion)
-    motion = Conv1D(24, 10, activation = 'relu', name = "motion_convolution_3")(motion)
+    motion = MaxPooling1D(pool_size = 3)(motion)
+    motion = Conv1D(24, 17, activation = 'relu', name = "motion_convolution_3")(motion)
     motion = BatchNormalization()(motion)
-    motion = MaxPooling1D(pool_size = 2)(motion)
+    motion = MaxPooling1D(pool_size = 3)(motion)
     #motion = Reshape((-1, motion.shape[-1]))(motion)
     #motion = Bidirectional(LSTM(units = 24, return_sequences = False, name = "motion_lstm"))(motion)
     #motion = BatchNormalization()(motion)
